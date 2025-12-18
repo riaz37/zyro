@@ -14,7 +14,7 @@ interface AgentState {
     files: { [path: string]: string };
 }
 
-type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC"
+type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK"
 type AgentPurpose = "code" | "title" | "response"
 
 function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPurpose) {
@@ -27,6 +27,13 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
         case "OPENAI":
             return openai({
                 model: "gpt-4o-mini",
+                apiKey,
+            })
+        case "GROK":
+            return openai({
+                // xAI Grok uses an OpenAI-compatible API surface
+                baseUrl: "https://api.x.ai/v1",
+                model: "grok-2-latest",
                 apiKey,
             })
         case "ANTHROPIC":

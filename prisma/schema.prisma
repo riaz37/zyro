@@ -68,6 +68,7 @@ enum AiProvider {
   GEMINI
   OPENAI
   ANTHROPIC
+  GROK
 }
 
 model UserAiSettings {

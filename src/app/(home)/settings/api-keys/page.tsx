@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type Provider = "GEMINI" | "OPENAI" | "ANTHROPIC"
+type Provider = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK"
 
 const PROVIDERS: Array<{
   id: Provider
@@ -34,6 +34,7 @@ const PROVIDERS: Array<{
   { id: "GEMINI", label: "Google Gemini", placeholder: "Paste your Gemini API key" },
   { id: "OPENAI", label: "OpenAI", placeholder: "Paste your OpenAI API key" },
   { id: "ANTHROPIC", label: "Anthropic", placeholder: "Paste your Anthropic API key" },
+  { id: "GROK", label: "Grok (xAI)", placeholder: "Paste your xAI (Grok) API key" },
 ]
 
 export default function ApiKeysSettingsPage() {
@@ -46,18 +47,21 @@ export default function ApiKeysSettingsPage() {
     GEMINI: "",
     OPENAI: "",
     ANTHROPIC: "",
+    GROK: "",
   })
 
   const [reveal, setReveal] = useState<Record<Provider, boolean>>({
     GEMINI: false,
     OPENAI: false,
     ANTHROPIC: false,
+    GROK: false,
   })
 
   const [editing, setEditing] = useState<Record<Provider, boolean>>({
     GEMINI: false,
     OPENAI: false,
     ANTHROPIC: false,
+    GROK: false,
   })
 
   const setKey = useMutation(
@@ -97,6 +101,7 @@ export default function ApiKeysSettingsPage() {
       GEMINI: { configured: false, updatedAt: null },
       OPENAI: { configured: false, updatedAt: null },
       ANTHROPIC: { configured: false, updatedAt: null },
+      GROK: { configured: false, updatedAt: null },
     }
   }, [data])
 
