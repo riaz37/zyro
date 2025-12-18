@@ -39,9 +39,6 @@ export function ProjectForm() {
             queryClient.invalidateQueries(
                 trpc.projects.getMany.queryOptions()
             )
-            queryClient.invalidateQueries(
-                trpc.usage.status.queryOptions()
-            )
             router.push(`/projects/${data?.id}`)
         },
         onError: (error) => {
@@ -51,8 +48,8 @@ export function ProjectForm() {
                 clerk.openSignIn();
             }
 
-            if (error.data?.code === "TOO_MANY_REQUESTS") {
-                router.push("/pricing")
+            if (error.data?.code === "PRECONDITION_FAILED") {
+                router.push("/settings/api-keys")
             }
         }
     }))

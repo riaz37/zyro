@@ -1,8 +1,9 @@
-import prisma from "@/lib/db";
+import prisma from "@/lib/prisma";
+import { getDecryptedUserApiKey, MissingUserApiKeyError } from "@/lib/ai-keys/server";
 import { lastAssistantMessageContent } from "@/lib/utils";
 import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { Sandbox } from "@e2b/code-interpreter";
-import { createAgent, createNetwork, createState, createTool, gemini, type Message, type Tool } from "@inngest/agent-kit";
+import { anthropic, createAgent, createNetwork, createState, createTool, gemini, openai, type Message, type Tool } from "@inngest/agent-kit";
 import { z } from "zod";
 import { inngest } from "./client";
 import { getSandbox } from "./utils";
@@ -13,10 +14,80 @@ interface AgentState {
     files: { [path: string]: string };
 }
 
+type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC"
+type AgentPurpose = "code" | "title" | "response"
+
+function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPurpose) {
+    switch (provider) {
+        case "GEMINI":
+            return gemini({
+                model: purpose === "code" ? "gemini-2.0-flash" : "gemini-1.5-flash",
+                apiKey,
+            })
+        case "OPENAI":
+            return openai({
+                model: "gpt-4o-mini",
+                apiKey,
+            })
+        case "ANTHROPIC":
+            return anthropic({
+                model: purpose === "code" ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest",
+                apiKey,
+                defaultParameters: {
+                    max_tokens: purpose === "code" ? 4096 : 1024,
+                },
+            })
+    }
+}
+
 export const codeAgentFunction = inngest.createFunction(
     { id: "code-agent" },
     { event: "code-agent/run" },
     async ({ event, step }) => {
+        const project = await step.run("get-project", async () => {
+            return prisma.project.findUnique({
+                where: { id: event.data.projectId },
+                select: { userId: true },
+            })
+        })
+
+        if (!project) {
+            throw new Error("Project not found")
+        }
+
+        let provider: AiProviderId
+        let apiKey: string
+
+        try {
+            const result = await step.run("get-user-api-key", async () => {
+                return getDecryptedUserApiKey(project.userId)
+            })
+            provider = result.provider
+            apiKey = result.apiKey
+        } catch (e) {
+            if (e instanceof MissingUserApiKeyError) {
+                await step.run("save-missing-api-key-message", async () => {
+                    return prisma.message.create({
+                        data: {
+                            projectId: event.data.projectId,
+                            content: e.message,
+                            role: "ASSISTANT",
+                            type: "ERROR",
+                        },
+                    })
+                })
+
+                return {
+                    url: "",
+                    title: "Missing API key",
+                    files: {},
+                    summary: "",
+                }
+            }
+
+            throw e
+        }
+
         const sandboxId = await step.run("get-sandbox", async () => {
             const sandbox = await Sandbox.create("zyro-nextjs-riaz302001");
             await sandbox.setTimeout(SANDBOX_TIMEOUT);
@@ -63,9 +134,7 @@ export const codeAgentFunction = inngest.createFunction(
             name: "code-agent",
             description: "An expert code agent",
             system: PROMPT,
-            model: gemini({
-                model: "gemini-2.0-flash"
-            }),
+            model: getAgentModel(provider, apiKey, "code"),
             tools: [
                 createTool({
                     name: "terminal",
@@ -192,18 +261,14 @@ export const codeAgentFunction = inngest.createFunction(
             name: "fragment-title-generator",
             description: "A fragment title generator",
             system: FRAGMENT_TITLE_PROMPT,
-            model: gemini({
-                model: "gemini-1.5-flash"
-            }),
+            model: getAgentModel(provider, apiKey, "title"),
         });
 
         const responseGenerator = createAgent({
             name: "response-generator",
             description: "A response generator",
             system: RESPONSE_PROMPT,
-            model: gemini({
-                model: "gemini-1.5-flash"
-            }),
+            model: getAgentModel(provider, apiKey, "response"),
         });
 
         const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(result.state.data.summary);

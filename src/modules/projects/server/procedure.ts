@@ -1,10 +1,10 @@
 import { inngest } from "@/inngest/client"
-import prisma from "@/lib/db"
+import prisma from "@/lib/prisma"
 import { protectedProcedure, createTRPCRouter } from "@/trpc/init"
 import { z } from "zod"
 import { generateSlug } from "random-word-slugs"
 import { TRPCError } from "@trpc/server"
-import { consumeCredits } from "@/lib/usage"
+import { hasAnyUserApiKey } from "@/lib/ai-keys/server"
 
 export const projectRoute = createTRPCRouter({
     getOne: protectedProcedure
@@ -41,9 +41,13 @@ export const projectRoute = createTRPCRouter({
             try {
                 console.log("Starting project creation for user:", ctx.auth.userId);
 
-                console.log("Consuming credits...");
-                await consumeCredits();
-                console.log("Credits consumed successfully");
+                const hasKey = await hasAnyUserApiKey(ctx.auth.userId)
+                if (!hasKey) {
+                    throw new TRPCError({
+                        code: "PRECONDITION_FAILED",
+                        message: "No AI API key configured. Go to Settings → API Keys.",
+                    })
+                }
 
                 console.log("Creating project in database...");
                 const createProject = await prisma.project.create({
@@ -76,17 +80,6 @@ export const projectRoute = createTRPCRouter({
                 return createProject;
             } catch (error) {
                 console.error("Error in project creation:", error);
-
-                if (error instanceof Error && error.message.includes("credit")) {
-                    throw new TRPCError({ code: "UNAUTHORIZED", message: error.message })
-                }
-
-                if (error instanceof Error && error.message.includes("limit")) {
-                    throw new TRPCError({
-                        code: "TOO_MANY_REQUESTS",
-                        message: "You have reached your request limit"
-                    })
-                }
 
                 // Re-throw the original error for debugging
                 throw error;

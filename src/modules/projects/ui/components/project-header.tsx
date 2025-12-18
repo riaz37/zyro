@@ -68,6 +68,12 @@ export function ProjectHeader({ projectId }: props) {
                         </Link>
                     </DropdownMenuItem>
 
+                    <DropdownMenuItem asChild>
+                        <Link href="/settings/api-keys">
+                            <span>API Keys</span>
+                        </Link>
+                    </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
 
                     <DropdownMenuSub>

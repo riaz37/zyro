@@ -47,7 +47,13 @@ export function Navbar() {
                 </SignedOut>
 
                 <SignedIn>
-                    <UserControl showName />
+                    <div className="flex items-center gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <Link href="/settings/api-keys">API Keys</Link>
+                        </Button>
+
+                        <UserControl showName />
+                    </div>
                 </SignedIn>
             </div>
         </nav>

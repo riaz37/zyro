@@ -7,17 +7,14 @@ import {
 } from "@/components/ui/resizable";
 
 import { FileExplorer } from "@/components/file-explorer";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Fragment } from "@/generated/prisma";
-import { CodeIcon, CrownIcon, EyeIcon } from "lucide-react";
-import Link from "next/link";
+import type { Fragment } from "@/generated/prisma";
+import { CodeIcon, EyeIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { FragmentWeb } from "../components/fragment-web";
 import { MessagesContainer } from "../components/messages-container";
 import { ProjectHeader } from "../components/project-header";
 import { UserControl } from "@/components/user-control";
-import { useAuth } from "@clerk/nextjs";
 import { ErrorBoundary } from "react-error-boundary";
 
 interface props {
@@ -25,10 +22,6 @@ interface props {
 }
 
 export function ProjectView({ projectId }: props) {
-    const { has } = useAuth();
-    const hasProAccess = has?.({ plan: "pro" });
-
-
     const [activeFragment, setActiveFragment] = useState<Fragment | null>(null);
     const [tabState, setTabState] = useState<"preview" | "code">("preview");
 
@@ -81,14 +74,6 @@ export function ProjectView({ projectId }: props) {
                             </TabsList>
 
                             <div className="ml-auto flex items-center gap-x-2">
-                                {!hasProAccess && (
-                                    <Button asChild size="sm" variant="tertiary">
-                                        <Link href="/pricing">
-                                            <CrownIcon /> Upgrade
-                                        </Link>
-                                    </Button>
-                                )}
-
                                 <UserControl />
                             </div>
                         </div>

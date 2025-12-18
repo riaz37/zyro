@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Project {
@@ -65,8 +64,33 @@ model Fragment {
   updatedAt DateTime @updatedAt
 }
 
-model Usage {
-  key    String   @id
-  points Int
-  expire DateTime?
+enum AiProvider {
+  GEMINI
+  OPENAI
+  ANTHROPIC
+}
+
+model UserAiSettings {
+  userId          String     @id
+  defaultProvider AiProvider @default(GEMINI)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserAiProviderKey {
+  id String @id @default(uuid())
+
+  userId   String
+  provider AiProvider
+
+  iv         Bytes
+  ciphertext Bytes
+  authTag    Bytes
+  last4      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, provider])
 }

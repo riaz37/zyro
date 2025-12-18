@@ -1,6 +1,6 @@
 import { inngest } from "@/inngest/client"
-import prisma from "@/lib/db"
-import { consumeCredits } from "@/lib/usage"
+import prisma from "@/lib/prisma"
+import { hasAnyUserApiKey } from "@/lib/ai-keys/server"
 import { protectedProcedure, createTRPCRouter } from "@/trpc/init"
 import { TRPCError } from "@trpc/server"
 import { z } from "zod"
@@ -55,17 +55,12 @@ export const messageRoute = createTRPCRouter({
                 throw new TRPCError({ code: "NOT_FOUND", message: "Project not found" })
             }
 
-            try {
-                await consumeCredits();
-            } catch (error) {
-                if (error instanceof Error) {
-                    throw new TRPCError({ code: "UNAUTHORIZED", message: error.message })
-                } else {
-                    throw new TRPCError({
-                        code: "TOO_MANY_REQUESTS",
-                        message: "You have reached your request limit"
-                    })
-                }
+            const hasKey = await hasAnyUserApiKey(ctx.auth.userId)
+            if (!hasKey) {
+                throw new TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message: "No AI API key configured. Go to Settings → API Keys.",
+                })
             }
 
             const createMessage = await prisma.message.create({
