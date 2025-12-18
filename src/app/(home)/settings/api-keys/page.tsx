@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { useTRPC } from "@/trpc/client"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import {
@@ -46,6 +46,18 @@ export default function ApiKeysSettingsPage() {
     GEMINI: "",
     OPENAI: "",
     ANTHROPIC: "",
+  })
+
+  const [reveal, setReveal] = useState<Record<Provider, boolean>>({
+    GEMINI: false,
+    OPENAI: false,
+    ANTHROPIC: false,
+  })
+
+  const [editing, setEditing] = useState<Record<Provider, boolean>>({
+    GEMINI: false,
+    OPENAI: false,
+    ANTHROPIC: false,
   })
 
   const setKey = useMutation(
@@ -82,9 +94,9 @@ export default function ApiKeysSettingsPage() {
 
   const providerStatus = useMemo(() => {
     return data?.providers ?? {
-      GEMINI: { configured: false, last4: null, updatedAt: null },
-      OPENAI: { configured: false, last4: null, updatedAt: null },
-      ANTHROPIC: { configured: false, last4: null, updatedAt: null },
+      GEMINI: { configured: false, updatedAt: null },
+      OPENAI: { configured: false, updatedAt: null },
+      ANTHROPIC: { configured: false, updatedAt: null },
     }
   }, [data])
 
@@ -94,8 +106,7 @@ export default function ApiKeysSettingsPage() {
         <CardHeader>
           <CardTitle>API Keys</CardTitle>
           <CardDescription>
-            Bring your own API keys. Keys are stored encrypted and are never shown
-            again after saving.
+            Bring your own API keys. Keys are stored encrypted.
           </CardDescription>
         </CardHeader>
 
@@ -147,43 +158,96 @@ export default function ApiKeysSettingsPage() {
             {PROVIDERS.map((p) => {
               const status = providerStatus[p.id]
               const configured = status?.configured ?? false
-              const last4 = status?.last4 ?? null
+
+              const showMaskedValue =
+                configured && !reveal[p.id] && !editing[p.id] && !draftKeys[p.id].trim()
 
               return (
                 <div key={p.id} className="space-y-2">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium">{p.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {configured
-                          ? `Configured (••••${last4})`
-                          : "Not configured yet"}
-                      </p>
                     </div>
 
-                    {configured && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={clearKey.isPending}
-                        onClick={() => clearKey.mutate({ provider: p.id })}
-                      >
-                        Clear
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {configured && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={clearKey.isPending}
+                          onClick={() => {
+                            clearKey.mutate({ provider: p.id })
+                            setDraftKeys((prev) => ({ ...prev, [p.id]: "" }))
+                            setReveal((prev) => ({ ...prev, [p.id]: false }))
+                            setEditing((prev) => ({ ...prev, [p.id]: false }))
+                          }}
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Input
-                      value={draftKeys[p.id]}
-                      onChange={(e) =>
-                        setDraftKeys((prev) => ({ ...prev, [p.id]: e.target.value }))
-                      }
-                      placeholder={p.placeholder}
-                      type="password"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
+                    <div className="relative flex-1">
+                      <Input
+                        value={showMaskedValue ? "••••••••••••••••" : draftKeys[p.id]}
+                        onChange={(e) =>
+                          setDraftKeys((prev) => ({
+                            ...prev,
+                            [p.id]: e.target.value,
+                          }))
+                        }
+                        placeholder={p.placeholder}
+                        type={showMaskedValue ? "text" : reveal[p.id] ? "text" : "password"}
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="pr-10"
+                        readOnly={showMaskedValue}
+                        onFocus={() => {
+                          if (showMaskedValue) {
+                            setEditing((prev) => ({ ...prev, [p.id]: true }))
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!draftKeys[p.id].trim()) {
+                            setEditing((prev) => ({ ...prev, [p.id]: false }))
+                          }
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        className={cn(
+                          "absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors",
+                          "disabled:opacity-50 disabled:cursor-not-allowed"
+                        )}
+                        disabled={
+                          !configured && !draftKeys[p.id].trim() && !reveal[p.id]
+                        }
+                        onClick={async () => {
+                          // If user wants to reveal but input is empty, fetch saved key first.
+                          if (!reveal[p.id] && !draftKeys[p.id].trim() && configured) {
+                            const { apiKey } = await queryClient.fetchQuery(
+                              trpc.apiKeys.getKey.queryOptions({ provider: p.id })
+                            )
+                            setDraftKeys((prev) => ({ ...prev, [p.id]: apiKey }))
+                            setEditing((prev) => ({ ...prev, [p.id]: true }))
+                          }
+
+                          setReveal((prev) => ({ ...prev, [p.id]: !prev[p.id] }))
+                        }}
+                        aria-label={reveal[p.id] ? "Hide API key" : "Show API key"}
+                        title={reveal[p.id] ? "Hide" : "Show"}
+                      >
+                        {reveal[p.id] ? (
+                          <EyeOffIcon className="size-4" />
+                        ) : (
+                          <EyeIcon className="size-4" />
+                        )}
+                      </button>
+                    </div>
 
                     <Button
                       disabled={setKey.isPending || !draftKeys[p.id].trim()}
@@ -191,6 +255,8 @@ export default function ApiKeysSettingsPage() {
                         const apiKey = draftKeys[p.id].trim()
                         await setKey.mutateAsync({ provider: p.id, apiKey })
                         setDraftKeys((prev) => ({ ...prev, [p.id]: "" }))
+                        setReveal((prev) => ({ ...prev, [p.id]: false }))
+                        setEditing((prev) => ({ ...prev, [p.id]: false }))
                       }}
                     >
                       {configured ? "Replace" : "Save"}

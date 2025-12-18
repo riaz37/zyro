@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import { encryptApiKey } from "@/lib/ai-keys/crypto"
+import { decryptApiKey } from "@/lib/ai-keys/crypto"
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import { z } from "zod"
 import { TRPCError } from "@trpc/server"
@@ -17,18 +18,17 @@ export const apiKeysRouter = createTRPCRouter({
       }),
       prisma.userAiProviderKey.findMany({
         where: { userId },
-        select: { provider: true, last4: true, updatedAt: true },
+        select: { provider: true, updatedAt: true },
       }),
     ])
 
     const byProvider = new Map<
       "GEMINI" | "OPENAI" | "ANTHROPIC",
-      { last4: string; updatedAt: Date }
+      { updatedAt: Date }
     >()
 
     for (const k of keys) {
       byProvider.set(k.provider as "GEMINI" | "OPENAI" | "ANTHROPIC", {
-        last4: k.last4,
         updatedAt: k.updatedAt,
       })
     }
@@ -36,8 +36,8 @@ export const apiKeysRouter = createTRPCRouter({
     const pack = (provider: "GEMINI" | "OPENAI" | "ANTHROPIC") => {
       const v = byProvider.get(provider)
       return v
-        ? { configured: true, last4: v.last4, updatedAt: v.updatedAt }
-        : { configured: false, last4: null, updatedAt: null }
+        ? { configured: true, updatedAt: v.updatedAt }
+        : { configured: false, updatedAt: null }
     }
 
     return {
@@ -53,6 +53,41 @@ export const apiKeysRouter = createTRPCRouter({
       },
     }
   }),
+
+  getKey: protectedProcedure
+    .input(z.object({ provider: providerSchema }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.auth.userId
+
+      const row = await prisma.userAiProviderKey.findUnique({
+        where: {
+          userId_provider: {
+            userId,
+            provider: input.provider,
+          },
+        },
+        select: {
+          iv: true,
+          ciphertext: true,
+          authTag: true,
+        },
+      })
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No API key configured for this provider.",
+        })
+      }
+
+      const apiKey = decryptApiKey({
+        iv: row.iv,
+        ciphertext: row.ciphertext,
+        authTag: row.authTag,
+      })
+
+      return { apiKey }
+    }),
 
   setKey: protectedProcedure
     .input(
