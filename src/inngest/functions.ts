@@ -49,8 +49,8 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
                 // OpenRouter uses an OpenAI-compatible API
                 baseUrl: "https://openrouter.ai/api/v1",
                 model: purpose === "code" 
-                    ? "deepseek/deepseek-coder"  // DeepSeek Coder for code generation
-                    : "mistralai/mistral-7b-instruct",  // Mistral for titles and responses
+                    ? "mistralai/devstral-2512"  // Devstral 2 for agentic coding
+                    : "deepseek/deepseek-chat-v3.1",  // DeepSeek V3.1 for titles and responses
                 apiKey,
             })
     }
