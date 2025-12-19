@@ -5,7 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init"
 import { z } from "zod"
 import { TRPCError } from "@trpc/server"
 
-const providerSchema = z.enum(["GEMINI", "OPENAI", "ANTHROPIC", "GROK"])
+const providerSchema = z.enum(["GEMINI", "OPENAI", "ANTHROPIC", "GROK", "OPENROUTER"])
 
 export const apiKeysRouter = createTRPCRouter({
   getStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -23,17 +23,17 @@ export const apiKeysRouter = createTRPCRouter({
     ])
 
     const byProvider = new Map<
-      "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK",
+      "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER",
       { updatedAt: Date }
     >()
 
     for (const k of keys) {
-      byProvider.set(k.provider as "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK", {
+      byProvider.set(k.provider as "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER", {
         updatedAt: k.updatedAt,
       })
     }
 
-    const pack = (provider: "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK") => {
+    const pack = (provider: "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER") => {
       const v = byProvider.get(provider)
       return v
         ? { configured: true, updatedAt: v.updatedAt }
@@ -45,12 +45,15 @@ export const apiKeysRouter = createTRPCRouter({
         | "GEMINI"
         | "OPENAI"
         | "ANTHROPIC"
+        | "GROK"
+        | "OPENROUTER"
         | undefined) ?? "GEMINI",
       providers: {
         GEMINI: pack("GEMINI"),
         OPENAI: pack("OPENAI"),
         ANTHROPIC: pack("ANTHROPIC"),
         GROK: pack("GROK"),
+        OPENROUTER: pack("OPENROUTER"),
       },
     }
   }),

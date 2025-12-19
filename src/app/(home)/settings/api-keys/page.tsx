@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type Provider = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK"
+type Provider = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER"
 
 const PROVIDERS: Array<{
   id: Provider
@@ -35,6 +35,7 @@ const PROVIDERS: Array<{
   { id: "OPENAI", label: "OpenAI", placeholder: "Paste your OpenAI API key" },
   { id: "ANTHROPIC", label: "Anthropic", placeholder: "Paste your Anthropic API key" },
   { id: "GROK", label: "Grok (xAI)", placeholder: "Paste your xAI (Grok) API key" },
+  { id: "OPENROUTER", label: "OpenRouter", placeholder: "Paste your OpenRouter API key" },
 ]
 
 export default function ApiKeysSettingsPage() {
@@ -48,6 +49,7 @@ export default function ApiKeysSettingsPage() {
     OPENAI: "",
     ANTHROPIC: "",
     GROK: "",
+    OPENROUTER: "",
   })
 
   const [reveal, setReveal] = useState<Record<Provider, boolean>>({
@@ -55,6 +57,7 @@ export default function ApiKeysSettingsPage() {
     OPENAI: false,
     ANTHROPIC: false,
     GROK: false,
+    OPENROUTER: false,
   })
 
   const [editing, setEditing] = useState<Record<Provider, boolean>>({
@@ -62,6 +65,7 @@ export default function ApiKeysSettingsPage() {
     OPENAI: false,
     ANTHROPIC: false,
     GROK: false,
+    OPENROUTER: false,
   })
 
   const setKey = useMutation(
@@ -102,6 +106,7 @@ export default function ApiKeysSettingsPage() {
       OPENAI: { configured: false, updatedAt: null },
       ANTHROPIC: { configured: false, updatedAt: null },
       GROK: { configured: false, updatedAt: null },
+      OPENROUTER: { configured: false, updatedAt: null },
     }
   }, [data])
 

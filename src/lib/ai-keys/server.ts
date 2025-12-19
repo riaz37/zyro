@@ -3,7 +3,7 @@ import "server-only"
 import prisma from "@/lib/prisma"
 import { decryptApiKey } from "./crypto"
 
-export type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK"
+export type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER"
 
 export class MissingUserApiKeyError extends Error {
   code = "MISSING_USER_API_KEY" as const

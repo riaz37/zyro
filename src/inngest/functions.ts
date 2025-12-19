@@ -14,7 +14,7 @@ interface AgentState {
     files: { [path: string]: string };
 }
 
-type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK"
+type AiProviderId = "GEMINI" | "OPENAI" | "ANTHROPIC" | "GROK" | "OPENROUTER"
 type AgentPurpose = "code" | "title" | "response"
 
 function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPurpose) {
@@ -43,6 +43,15 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
                 defaultParameters: {
                     max_tokens: purpose === "code" ? 4096 : 1024,
                 },
+            })
+        case "OPENROUTER":
+            return openai({
+                // OpenRouter uses an OpenAI-compatible API
+                baseUrl: "https://openrouter.ai/api/v1",
+                model: purpose === "code" 
+                    ? "deepseek/deepseek-coder"  // DeepSeek Coder for code generation
+                    : "mistralai/mistral-7b-instruct",  // Mistral for titles and responses
+                apiKey,
             })
     }
 }
