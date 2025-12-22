@@ -79,7 +79,12 @@ export function ProjectView({ projectId }: props) {
                         </div>
 
                         <TabsContent value="preview">
-                            {!!activeFragment && <FragmentWeb data={activeFragment} />}
+                            {!!activeFragment && (
+                                <FragmentWeb
+                                    data={activeFragment}
+                                    projectId={projectId}
+                                />
+                            )}
                         </TabsContent>
 
                         <TabsContent value="code" className="min-h-0">

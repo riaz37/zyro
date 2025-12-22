@@ -5,6 +5,7 @@ import { z } from "zod"
 import { generateSlug } from "random-word-slugs"
 import { TRPCError } from "@trpc/server"
 import { hasAnyUserApiKey } from "@/lib/ai-keys/server"
+import { getSandbox } from "@/inngest/utils"
 
 export const projectRoute = createTRPCRouter({
     getOne: protectedProcedure
@@ -98,5 +99,50 @@ export const projectRoute = createTRPCRouter({
             });
 
             return projects;
+        }),
+
+    getSandboxStatus: protectedProcedure
+        .input(
+            z.object({
+                fragmentId: z.string()
+                    .min(1, { message: "Fragment Id is required" })
+            })
+        )
+        .query(async ({ input, ctx }) => {
+            const fragment = await prisma.fragment.findUnique({
+                where: {
+                    id: input.fragmentId,
+                },
+                select: {
+                    sandboxId: true,
+                    sandboxUrl: true,
+                }
+            });
+
+            if (!fragment || !fragment.sandboxId) {
+                return { isRunning: false, logs: "" };
+            }
+
+            try {
+                const sandbox = await getSandbox(fragment.sandboxId!);
+
+                // 1. Health check
+                const checkStatus = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
+                    timeoutMs: 5000
+                }).catch(() => ({ stdout: "000" }));
+
+                const isRunning = checkStatus.stdout.trim() === "200";
+
+                // 2. Fetch logs
+                const logsResult = await sandbox.files.read("/tmp/nextjs.log").catch(() => "");
+
+                return {
+                    isRunning,
+                    logs: logsResult || ""
+                };
+            } catch (error) {
+                console.error("Error checking sandbox status:", error);
+                return { isRunning: false, logs: "" };
+            }
         }),
 }) 

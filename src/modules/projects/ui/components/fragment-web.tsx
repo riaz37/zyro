@@ -1,19 +1,64 @@
 import { Hint } from "@/components/hint"
 import { Button } from "@/components/ui/button"
 import type { Fragment } from "@/generated/prisma"
-import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react"
+import { ExternalLinkIcon, RefreshCwIcon, WrenchIcon } from "lucide-react"
 import { useState } from "react"
+import { useTRPC } from "@/trpc/client"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 interface props {
     data: Fragment
+    projectId: string
 }
 
-export function FragmentWeb({ data }: props) {
+export function FragmentWeb({ data, projectId }: props) {
+    const trpc = useTRPC();
+    const queryClient = useQueryClient();
+
     const [fragmentKey, setFragmentKey] = useState(0);
     const [copied, setCopied] = useState(false);
 
+    const { data: status } = useQuery(
+        trpc.projects.getSandboxStatus.queryOptions({
+            fragmentId: data.id
+        }, {
+            refetchInterval: (query) => {
+                if (query.state.data?.isRunning) return false;
+                return 5000;
+            }
+        })
+    )
+
+    const createMessage = useMutation(trpc.message.create.mutationOptions({
+        onSuccess: () => {
+            queryClient.invalidateQueries(
+                trpc.message.getMany.queryOptions({
+                    projectId: projectId
+                })
+            )
+        },
+        onError: (error) => {
+            toast.error(error.message);
+        }
+    }))
+
     const onRefresh = () => {
         setFragmentKey((prev) => prev + 1);
+    }
+
+    const onFix = async () => {
+        if (!status?.logs) {
+            toast.error("No logs found to fix");
+            return;
+        }
+
+        await createMessage.mutateAsync({
+            projectId: projectId,
+            value: `The project is not running correctly. Here are the logs:\n\n\`\`\`\n${status.logs}\n\`\`\`\n\nPlease fix the issues.`,
+        })
+
+        toast.success("Fix request sent");
     }
 
     const handleCopy = () => {
@@ -62,6 +107,19 @@ export function FragmentWeb({ data }: props) {
                         <ExternalLinkIcon />
                     </Button>
                 </Hint>
+
+                {status && !status.isRunning && (
+                    <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={onFix}
+                        disabled={createMessage.isPending}
+                        className="ml-auto"
+                    >
+                        <WrenchIcon className="size-4 mr-2" />
+                        Fix Issue
+                    </Button>
+                )}
             </div>
 
             <iframe
