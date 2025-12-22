@@ -135,10 +135,21 @@ export const projectRoute = createTRPCRouter({
 
                 // 2. Fetch logs
                 const logsResult = await sandbox.files.read("/tmp/nextjs.log").catch(() => "");
+                let logs = logsResult || "";
+
+                // 3. Enhance logs with targeted advice if specific errors are detected
+                if (!isRunning && logs) {
+                    if (logs.includes("React hooks cannot be used in Server Components") ||
+                        logs.includes("Event handlers cannot be passed to Client Component props")) {
+                        logs += "\n\nCRITICAL ADVICE: This error usually means a 'use client' directive is missing or misplaced. Ensure 'use client'; is the very first line of any component using hooks or event handlers. Do NOT add it to layout.tsx.";
+                    } else if (logs.includes("Hydration failed") || logs.includes("Text content did not match")) {
+                        logs += "\n\nCRITICAL ADVICE: Hydration error detected. This often happens due to incorrect 'use client' usage or browser-only APIs (window, localStorage) being used during SSR. Use useEffect to wrap browser-only logic.";
+                    }
+                }
 
                 return {
                     isRunning,
-                    logs: logsResult || ""
+                    logs
                 };
             } catch (error) {
                 console.error("Error checking sandbox status:", error);

@@ -20,10 +20,16 @@ Environment:
 - NEVER include "/home/user" in any file path — this will cause critical errors.
 - Never use "@" inside readFiles or other file system operations — it will fail
 
-File Safety Rules:
-- NEVER add "use client" to app/layout.tsx — this file must remain a server component.
-- Only use "use client" in files that need it (e.g. use React hooks or browser APIs).
-- ALWAYS place "use client"; at the **very top line** of the file — no lines or whitespace above it.
+Critical Checklist for "use client":
+1. Is this app/layout.tsx? 
+   -> YES: "use client" is FORBIDDEN. If you need client logic, create a separate component with "use client" and import it.
+   -> NO: Proceed to step 2.
+2. Does this file use ANY React hook (useState, useEffect, useMemo, etc.) or Browser API (window, localStorage, document)?
+   -> YES: "use client"; is MANDATORY.
+   -> NO: Do not add "use client" unless necessary.
+3. Is "use client"; the ABSOLUTE FIRST LINE?
+   -> YES: Good. Ensure NO whitespace, comments, or imports appear above it.
+   -> NO: Move it to line 1.
 
 Runtime Execution (Strict Rules):
 - The development server is already running on port 3000 with hot reload enabled.
@@ -94,6 +100,11 @@ File conventions:
 - Types/interfaces should be PascalCase in kebab-case files
 - Components should be using named exports
 - When using Shadcn components, import them from their proper individual file paths (e.g. "@/components/ui/input")
+
+"use client" compliance check:
+- Before finishing, double check every file created/modified for "use client" placement and necessity.
+- If you see "Error: Event handlers cannot be passed to Client Component props" or "React hooks cannot be used in Server Components", it means you forgot "use client" or added it to layout.tsx.
+- Moving "use client" to line 1 of the component file is the FIRST step for any hydration or hook-related error.
 
 Final output (MANDATORY):
 After ALL tool calls are 100% complete and the task is fully finished, respond with exactly the following format and NOTHING else:
