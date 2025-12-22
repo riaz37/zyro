@@ -13,5 +13,5 @@
 team_id = "44da2f19-6eda-4c99-8284-d361e170f873"
 start_cmd = "/compile_page.sh"
 dockerfile = "sandbox-template/nextjs/e2b.Dockerfile"
-template_name = "zyro-nextjs-riaz-v2"
-template_id = "o7bbko9uoov3q0dffhox"
+template_name = "zyro-nextjs-riaz37"
+template_id = "um8lezi8mpyxtczewk7g"

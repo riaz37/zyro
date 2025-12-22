@@ -48,7 +48,7 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
             return openai({
                 // OpenRouter uses an OpenAI-compatible API
                 baseUrl: "https://openrouter.ai/api/v1",
-                model: purpose === "code" 
+                model: purpose === "code"
                     ? "mistralai/devstral-2512:free"  // Free Devstral 2 for agentic coding
                     : "mistralai/mistral-7b-instruct:free",  // Free Mistral 7B for titles and responses
                 apiKey,
@@ -105,7 +105,7 @@ export const codeAgentFunction = inngest.createFunction(
         }
 
         const sandboxId = await step.run("get-sandbox", async () => {
-            const sandbox = await Sandbox.create("zyro-nextjs-riaz302001");
+            const sandbox = await Sandbox.create("zyro-nextjs-riaz37");
             await sandbox.setTimeout(SANDBOX_TIMEOUT);
             return sandbox.sandboxId;
         });
