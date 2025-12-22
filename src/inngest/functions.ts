@@ -336,7 +336,8 @@ export const codeAgentFunction = inngest.createFunction(
                 const sandbox = await getSandbox(sandboxId);
 
                 // Check if Next.js server is running by testing the port
-                const checkServerResult = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000", {
+                // Use || echo "000" to prevent CommandExitError if connection is refused
+                const checkServerResult = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
                     timeoutMs: 5000
                 });
 
@@ -363,7 +364,7 @@ export const codeAgentFunction = inngest.createFunction(
                     while (attempts < maxAttempts) {
                         await new Promise(resolve => setTimeout(resolve, 1000));
 
-                        const serverCheck = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000", {
+                        const serverCheck = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
                             timeoutMs: 3000
                         });
 
