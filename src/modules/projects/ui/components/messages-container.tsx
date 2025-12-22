@@ -41,7 +41,8 @@ export function MessagesContainer({
 
             // Automatically open the project link in a new tab when project is completed
             if (lastAssistantMessage.Fragment.sandboxUrl) {
-                window.open(lastAssistantMessage.Fragment.sandboxUrl, "_blank");
+                const secureUrl = lastAssistantMessage.Fragment.sandboxUrl.replace(/^http:\/\//, 'https://');
+                window.open(secureUrl, "_blank");
             }
         }
     }, [messages, setActiveFragment])

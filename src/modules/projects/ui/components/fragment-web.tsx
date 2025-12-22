@@ -17,7 +17,8 @@ export function FragmentWeb({ data }: props) {
     }
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(data.sandboxUrl);
+        const secureUrl = data.sandboxUrl.replace(/^http:\/\//, 'https://');
+        navigator.clipboard.writeText(secureUrl);
         setCopied(true);
         setTimeout(() => {
             setCopied(false);
@@ -54,7 +55,8 @@ export function FragmentWeb({ data }: props) {
                         disabled={!data.sandboxUrl}
                         onClick={() => {
                             if (!data.sandboxUrl) return;
-                            window.open(data.sandboxUrl, "_blank");
+                            const secureUrl = data.sandboxUrl.replace(/^http:\/\//, 'https://');
+                            window.open(secureUrl, "_blank");
                         }}
                     >
                         <ExternalLinkIcon />
@@ -67,7 +69,7 @@ export function FragmentWeb({ data }: props) {
                 className="h-full w-full"
                 sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-modals"
                 loading="lazy"
-                src={data.sandboxUrl}
+                src={data.sandboxUrl.replace(/^http:\/\//, 'https://')}
             />
         </div>
     )

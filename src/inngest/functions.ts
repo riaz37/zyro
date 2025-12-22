@@ -333,8 +333,9 @@ export const codeAgentFunction = inngest.createFunction(
 
         const sandboxUrl = await step.run("get-sandbox-url", async () => {
             const sandbox = await getSandbox(sandboxId);
-            const host = sandbox.getHost(3000);
-            const fallbackUrl = `https://${host}`;
+            const rawHost = sandbox.getHost(3000);
+            const host = rawHost.replace(/^https?:\/\//, '');
+            const sandboxUrl = `https://${host}`;
 
             try {
                 // 1. Initial health check (very lenient)
@@ -343,7 +344,7 @@ export const codeAgentFunction = inngest.createFunction(
                 }).catch(() => ({ stdout: "000" }));
 
                 if (checkStatus.stdout.trim() === "200") {
-                    return fallbackUrl;
+                    return sandboxUrl;
                 }
 
                 // 2. Attempt to start server (no pkill, just start)
@@ -356,10 +357,10 @@ export const codeAgentFunction = inngest.createFunction(
                 // We don't poll indefinitely here to avoid Inngest step timeouts
                 await new Promise(resolve => setTimeout(resolve, 3000));
 
-                return fallbackUrl;
+                return sandboxUrl;
             } catch (error) {
                 console.error("Error in health check logic (continuing with fallback):", error);
-                return fallbackUrl;
+                return sandboxUrl;
             }
         });
 
