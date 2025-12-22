@@ -18,10 +18,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Zyro",
-  description: "Zyro -  AI Website Generator",
+  description: "Zyro - AI Website Generator",
   icons: {
     icon: "/logo.svg",
-  }
+  },
+  openGraph: {
+    images: ["/og-image.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
@@ -31,11 +38,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider
-    appearance={{
-      variables: {
-        colorPrimary: "#c96342",
-      }
-    }}
+      appearance={{
+        variables: {
+          colorPrimary: "#c96342",
+        }
+      }}
     >
       <TRPCReactProvider>
         <html lang="en" suppressHydrationWarning>

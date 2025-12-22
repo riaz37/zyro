@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useUser } from "@clerk/nextjs"
 
 export function ProjectList() {
-    const {user} = useUser()
+    const { user } = useUser()
     const trpc = useTRPC()
     const { data: projects } = useQuery(trpc.projects.getMany.queryOptions())
 
@@ -19,7 +19,7 @@ export function ProjectList() {
     return (
         <div className="w-full bg-white dark:bg-sidebar rounded-xl p-8 border flex flex-col gap-y-6 sm:gap-y-4">
             <h2 className="text-2xl font-semibold">
-                {user?.firstName}&apos;s Vibes
+                {user?.firstName}&apos;s Zyros
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
