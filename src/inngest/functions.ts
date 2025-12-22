@@ -332,62 +332,34 @@ export const codeAgentFunction = inngest.createFunction(
             Object.keys(result.state.data.files).length === 0
 
         const sandboxUrl = await step.run("get-sandbox-url", async () => {
+            const sandbox = await getSandbox(sandboxId);
+            const host = sandbox.getHost(3000);
+            const fallbackUrl = `https://${host}`;
+
             try {
-                const sandbox = await getSandbox(sandboxId);
+                // 1. Initial health check (very lenient)
+                const checkStatus = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
+                    timeoutMs: 10000
+                }).catch(() => ({ stdout: "000" }));
 
-                // Check if Next.js server is running by testing the port
-                // Use || echo "000" to prevent CommandExitError if connection is refused
-                const checkServerResult = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
-                    timeoutMs: 5000
-                });
-
-                console.log(`Server check result: ${checkServerResult.stdout}`);
-
-                // If server is not responding (not 200), try to start it
-                if (checkServerResult.stdout.trim() !== "200") {
-                    console.log("Next.js server not responding, attempting to start...");
-
-                    // Kill any existing Next.js processes
-                    await sandbox.commands.run("pkill -f 'next dev' || true");
-                    await sandbox.commands.run("pkill -f 'node.*next' || true");
-
-                    // Wait a moment for processes to terminate
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                    // Start Next.js server in background
-                    await sandbox.commands.run("cd /home/user && nohup npm run dev > /tmp/nextjs.log 2>&1 &");
-
-                    // Wait for server to start and check again
-                    let attempts = 0;
-                    const maxAttempts = 30; // 30 seconds max
-
-                    while (attempts < maxAttempts) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-
-                        const serverCheck = await sandbox.commands.run("curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo '000'", {
-                            timeoutMs: 3000
-                        });
-
-                        if (serverCheck.stdout.trim() === "200") {
-                            console.log(`Server started successfully after ${attempts + 1} attempts`);
-                            break;
-                        }
-
-                        attempts++;
-
-                        if (attempts === maxAttempts) {
-                            console.error(`Failed to start Next.js server after ${maxAttempts} attempts.`);
-                            throw new Error("Unable to start Next.js server in sandbox");
-                        }
-                    }
+                if (checkStatus.stdout.trim() === "200") {
+                    return fallbackUrl;
                 }
 
-                const host = sandbox.getHost(3000);
-                return `http://${host}`;
+                // 2. Attempt to start server (no pkill, just start)
+                // We use || true to ensure the command itself doesn't crash the step
+                await sandbox.commands.run("cd /home/user && (npm run dev > /tmp/nextjs.log 2>&1 &) || true", {
+                    timeoutMs: 15000
+                }).catch(e => console.log("Start command skipped or failed:", e.message));
+
+                // 3. Short wait and return
+                // We don't poll indefinitely here to avoid Inngest step timeouts
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                return fallbackUrl;
             } catch (error) {
-                console.error("Error getting sandbox URL:", error);
-                // Return a fallback URL or re-throw based on your needs
-                throw error;
+                console.error("Error in health check logic (continuing with fallback):", error);
+                return fallbackUrl;
             }
         });
 
