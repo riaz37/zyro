@@ -145,6 +145,11 @@ export const projectRoute = createTRPCRouter({
                     } else if (logs.includes("Hydration failed") || logs.includes("Text content did not match")) {
                         logs += "\n\nCRITICAL ADVICE: Hydration error detected. This often happens due to incorrect 'use client' usage or browser-only APIs (window, localStorage) being used during SSR. Use useEffect to wrap browser-only logic.";
                     }
+
+                    // 4. Truncate logs if they are too long (keep last 2000 chars)
+                    if (logs.length > 2000) {
+                        logs = "..." + logs.slice(-2000);
+                    }
                 }
 
                 return {

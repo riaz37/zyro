@@ -55,7 +55,7 @@ export function FragmentWeb({ data, projectId }: props) {
 
         await createMessage.mutateAsync({
             projectId: projectId,
-            value: `The project is not running correctly. Here are the logs:\n\n\`\`\`\n${status.logs}\n\`\`\`\n\nPlease fix the issues.`,
+            value: `The project has issues. Please fix them based on these logs:\n\n\`\`\`\n${status.logs}\n\`\`\``,
         })
 
         toast.success("Fix request sent");
