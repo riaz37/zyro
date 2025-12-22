@@ -293,11 +293,11 @@ export const codeAgentFunction = inngest.createFunction(
         const generateFragmentTitle = () => {
             const firstOutput = fragmentTitleOutput[0];
 
-            if (firstOutput.type === "text") {
+            if (firstOutput?.type === "text") {
                 return firstOutput.content || "Fragment";
             }
 
-            if (firstOutput.type === "tool_result") {
+            if (firstOutput?.type === "tool_result") {
                 const content = firstOutput.content;
                 if (Array.isArray(content)) {
                     return content[0]?.content || "Fragment";
@@ -311,11 +311,11 @@ export const codeAgentFunction = inngest.createFunction(
         const generateResponse = () => {
             const firstOutput = responseOutput[0];
 
-            if (firstOutput.type === "text") {
+            if (firstOutput?.type === "text") {
                 return firstOutput.content || "Here you go!";
             }
 
-            if (firstOutput.type === "tool_result") {
+            if (firstOutput?.type === "tool_result") {
                 const content = firstOutput.content;
                 if (Array.isArray(content)) {
                     return content[0]?.content || "Here you go!";
