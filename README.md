@@ -26,7 +26,7 @@
 
 ### 🤖 Multi-Provider AI Support
 Generate applications using your preferred AI provider:
-- **Google Gemini** (gemini-2.0-flash, gemini-1.5-flash)
+- **Google Gemini** (gemini-2.0-flash)
 - **OpenAI** (gpt-4o-mini)
 - **Anthropic Claude** (claude-3-5-sonnet, claude-3-5-haiku)
 - **xAI Grok** (grok-2-latest)

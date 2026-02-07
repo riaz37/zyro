@@ -21,7 +21,7 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
     switch (provider) {
         case "GEMINI":
             return gemini({
-                model: purpose === "code" ? "gemini-2.0-flash" : "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 apiKey,
             })
         case "OPENAI":
