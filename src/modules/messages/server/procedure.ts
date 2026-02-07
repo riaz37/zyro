@@ -113,7 +113,7 @@ export const messageRoute = createTRPCRouter({
             await inngest.send({
                 name: "code-agent/generate",
                 data: {
-                    value: "Generate code based on the approved plan.", // Context is handled by previous messages
+                    value: "Generate code based on the approved plan. Execute the plan step-by-step. When finished, you MUST output the <task_summary> tag to terminate the process. Do not ask for further instructions.",
                     projectId: input.projectId,
                 }
             });

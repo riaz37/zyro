@@ -217,11 +217,21 @@ export const codeAgentGenerate = inngest.createFunction(
 
         const previousMessage = await step.run("get-previous-message", async () => {
             const formattedMessage: Message[] = []
+
+            const planMessage = await prisma.message.findFirst({
+                where: { projectId: event.data.projectId, type: "PLAN" },
+                orderBy: { createdAt: "desc" },
+            })
+
             const messages = await prisma.message.findMany({
-                where: { projectId: event.data.projectId },
+                where: {
+                    projectId: event.data.projectId,
+                    id: { not: planMessage?.id }
+                },
                 orderBy: { createdAt: "desc" },
                 take: 10
             })
+
             for (const message of messages) {
                 if (!message.content) continue;
                 formattedMessage.push({
@@ -230,6 +240,15 @@ export const codeAgentGenerate = inngest.createFunction(
                     content: message.content
                 })
             }
+
+            if (planMessage && planMessage.content) {
+                formattedMessage.push({
+                    type: "text",
+                    role: "user",
+                    content: `Here is the approved plan you must execute:\n\n${planMessage.content}`
+                })
+            }
+
             return formattedMessage.reverse();
         })
 
@@ -354,7 +373,7 @@ export const codeAgentGenerate = inngest.createFunction(
         const network = createNetwork<AgentState>({
             name: "codding-agent-network",
             agents: [codeAgent],
-            maxIter: 15,
+            maxIter: 30,
             defaultState: state,
             router: async ({ network }) => {
                 const summary = network.state.data.summary
