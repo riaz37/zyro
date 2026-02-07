@@ -373,7 +373,7 @@ export const codeAgentGenerate = inngest.createFunction(
         const network = createNetwork<AgentState>({
             name: "codding-agent-network",
             agents: [codeAgent],
-            maxIter: 30,
+            maxIter: 15,
             defaultState: state,
             router: async ({ network }) => {
                 const summary = network.state.data.summary
@@ -387,7 +387,6 @@ export const codeAgentGenerate = inngest.createFunction(
         })
 
         const result = await network.run(event.data.value, { state })
-
 
         const fragmentTitleGenerator = createAgent({
             name: "fragment-title-generator",
@@ -403,12 +402,8 @@ export const codeAgentGenerate = inngest.createFunction(
             model: getAgentModel(provider, apiKey, "response"),
         });
 
-        const { output: fragmentTitleOutput } = await step.run("generate-fragment-title", async () => {
-            return await fragmentTitleGenerator.run(result.state.data.summary);
-        });
-        const { output: responseOutput } = await step.run("generate-response", async () => {
-            return await responseGenerator.run(result.state.data.summary);
-        });
+        const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(result.state.data.summary);
+        const { output: responseOutput } = await responseGenerator.run(result.state.data.summary);
 
         const generateFragmentTitle = () => {
             const firstOutput = fragmentTitleOutput[0];
