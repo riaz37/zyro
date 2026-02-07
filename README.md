@@ -1,149 +1,408 @@
-# Zyro 🚀
+<p align="center">
+  <img src="public/zyro-logo.svg" alt="Zyro Logo" width="120" />
+</p>
 
-**Generate beautiful web applications instantly with AI prompts**
+<h1 align="center">Zyro</h1>
 
-Zyro is an AI-powered web application generator that transforms your ideas into fully functional, live web apps through simple text prompts. Built with Next.js 15, it leverages cutting-edge AI to create, preview, and share web applications in real-time.
+<p align="center">
+  <strong>AI-Powered Web Application Generator</strong>
+</p>
+
+<p align="center">
+  Transform natural language prompts into fully functional, live Next.js applications — instantly.
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#tech-stack">Tech Stack</a>
+</p>
+
+---
 
 ## ✨ Features
 
-- **AI-Powered Generation**: Transform natural language prompts into complete web applications
-- **Live Preview**: See your generated apps running in real-time
-- **Instant Sharing**: Share your creations with friends through unique URLs
-- **Modern Stack**: Built with Next.js 15, React 19, and TypeScript
-- **Code Interpretation**: Execute and preview code dynamically with E2B integration
-- **Beautiful UI**: Responsive design with Tailwind CSS and Radix UI components
-- **Authentication**: Secure user management with Clerk
-- **Database**: Persistent storage with Prisma and PostgreSQL
-- **Dark Mode**: Full theme support with next-themes
+### 🤖 Multi-Provider AI Support
+Generate applications using your preferred AI provider:
+- **Google Gemini** (gemini-2.0-flash, gemini-1.5-flash)
+- **OpenAI** (gpt-4o-mini)
+- **Anthropic Claude** (claude-3-5-sonnet, claude-3-5-haiku)
+- **xAI Grok** (grok-2-latest)
+- **OpenRouter** (devstral-2512, mistral-7b-instruct)
 
-## 🛠️ Tech Stack
+### 🔒 Secure Key Management
+Encrypted API key storage with AES-256-GCM encryption. Bring your own API keys — stored securely with your user account.
 
-- **Framework**: Next.js 15 with Turbopack
-- **Frontend**: React 19, TypeScript, Tailwind CSS
-- **UI Components**: Radix UI, Lucide Icons
-- **Authentication**: Clerk
-- **Database**: Prisma ORM
-- **AI Integration**: E2B Code Interpreter
-- **State Management**: TanStack Query, tRPC
-- **Code Highlighting**: Prism.js
-- **Deployment**: Vercel-ready
+### 🖥️ Live Sandboxed Execution
+Each generation runs in an isolated E2B sandbox with:
+- Pre-configured Next.js 15.3.3 environment
+- Full file system access
+- Terminal command execution
+- Hot module reloading
+- Isolated port 3000 preview
+
+### 💬 Conversational Development
+Iterate on your applications through natural conversation:
+- Multi-turn context retention
+- Incremental feature additions
+- Real-time code modifications
+
+### 🎨 Production-Ready Output
+Generated apps include:
+- TypeScript throughout
+- Tailwind CSS styling
+- shadcn/ui components (pre-installed)
+- Responsive layouts
+- Accessibility best practices
+
+---
+
+## 🧠 How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              USER PROMPT                                     │
+│                    "Build a todo app with dark mode"                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ZYRO ORCHESTRATION                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │   Clerk     │    │    tRPC     │    │   Inngest   │    │   Prisma    │  │
+│  │    Auth     │───▶│     API     │───▶│   Events    │───▶│   Storage   │  │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           AI AGENT NETWORK                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                        CODE AGENT                                     │  │
+│   │  • System prompt with Next.js/Tailwind/shadcn expertise              │  │
+│   │  • Tools: terminal, createOrUpdateFile, readFile                     │  │
+│   │  • Iterates until <task_summary> generated                           │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                        │
+│                                     ▼                                        │
+│   ┌────────────────────┐     ┌────────────────────┐                         │
+│   │  Title Generator   │     │ Response Generator │                         │
+│   │  (3-word summary)  │     │  (User message)    │                         │
+│   └────────────────────┘     └────────────────────┘                         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           E2B SANDBOX                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │  Isolated Next.js 15.3.3 Environment                                 │  │
+│   ├──────────────────────────────────────────────────────────────────────┤  │
+│   │  📁 /home/user                                                       │  │
+│   │  ├── app/                     ← Generated pages & components         │  │
+│   │  │   ├── page.tsx                                                    │  │
+│   │  │   ├── layout.tsx                                                  │  │
+│   │  │   └── [components].tsx                                            │  │
+│   │  ├── components/ui/           ← Pre-installed shadcn components      │  │
+│   │  ├── lib/utils.ts             ← Utilities (cn, etc.)                 │  │
+│   │  └── package.json                                                    │  │
+│   ├──────────────────────────────────────────────────────────────────────┤  │
+│   │  🖥️  Dev server running on port 3000 with hot reload                │  │
+│   │  🔧  npm available for dependency installation                       │  │
+│   │  📂  Full file system read/write access                              │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           LIVE PREVIEW                                       │
+│              https://[sandbox-id].e2b.dev • Shareable URL                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ Architecture
+
+### System Overview
+
+Zyro is built as a modern, event-driven system using Next.js 15 with a sophisticated agent-based AI backend:
+
+```
+zyro/
+├── src/
+│   ├── app/                    # Next.js 15 App Router
+│   │   ├── (home)/             # Authenticated routes
+│   │   ├── api/                # API endpoints (tRPC, Inngest)
+│   │   └── projects/           # Project views
+│   │
+│   ├── components/             # UI Components
+│   │   ├── ui/                 # shadcn/ui components
+│   │   ├── code-view/          # Code editor & preview
+│   │   ├── file-explorer.tsx   # File tree navigation
+│   │   └── tree-view.tsx       # Directory structure
+│   │
+│   ├── modules/                # Feature modules
+│   │   ├── home/               # Dashboard
+│   │   ├── projects/           # Project management
+│   │   ├── messages/           # Chat interface
+│   │   └── api-keys/           # Key management
+│   │
+│   ├── inngest/                # Background job processing
+│   │   ├── functions.ts        # AI agent orchestration
+│   │   ├── client.ts           # Inngest client
+│   │   └── utils.ts            # Sandbox utilities
+│   │
+│   ├── trpc/                   # Type-safe API layer
+│   │   ├── routers/            # API route definitions
+│   │   ├── server.tsx          # Server utilities
+│   │   └── client.tsx          # Client utilities
+│   │
+│   ├── lib/                    # Shared utilities
+│   │   ├── prisma.ts           # Database client
+│   │   ├── ai-keys/            # Encryption utilities
+│   │   └── utils.ts            # Helper functions
+│   │
+│   └── prompt.ts               # AI system prompts
+│
+├── prisma/
+│   └── schema.prisma           # Database schema
+│
+└── sandbox-template/           # E2B sandbox config
+    └── nextjs/                 # Next.js template
+```
+
+### Data Models
+
+```prisma
+model Project {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  content   String
+  role      MessageRole // USER | ASSISTANT
+  type      MessageType // RESULT | ERROR
+  projectId String?
+  Fragment  Fragment?
+}
+
+model Fragment {
+  id         String @id @default(uuid())
+  messageId  String @unique
+  sandboxUrl String          # Live preview URL
+  sandboxId  String?         # E2B sandbox identifier
+  title      String          # AI-generated title
+  files      Json            # Generated file contents
+}
+
+model UserAiProviderKey {
+  id         String     @id @default(uuid())
+  userId     String
+  provider   AiProvider // GEMINI | OPENAI | ANTHROPIC | GROK | OPENROUTER
+  iv         Bytes              # Encryption IV
+  ciphertext Bytes              # Encrypted key
+  authTag    Bytes              # Auth tag
+  last4      String             # Display hint
+}
+```
+
+### AI Agent System
+
+The core of Zyro is an **Inngest Agent Kit** powered network:
+
+| Agent | Purpose | Model |
+|-------|---------|-------|
+| **Code Agent** | Generates and modifies application code | Provider's primary model |
+| **Title Generator** | Creates 3-word fragment titles | Provider's fast model |
+| **Response Generator** | Writes user-friendly completion messages | Provider's fast model |
+
+**Available Tools:**
+
+| Tool | Description |
+|------|-------------|
+| `terminal` | Execute shell commands (npm install, etc.) |
+| `createOrUpdateFile` | Write files to the sandbox |
+| `readFile` | Read existing file contents |
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
-- PostgreSQL database
-- Clerk account for authentication
-- E2B account for code interpretation
+- **Node.js 18+** with pnpm
+- **PostgreSQL** database
+- **Clerk** account for authentication
+- **E2B** account for sandbox execution
+- **Inngest** account for event processing
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/zyro.git
-cd zyro
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/riaz37/zyro.git
+   cd zyro
+   ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
+3. **Configure environment**
+   ```bash
+   cp .env.example .env.local
+   ```
 
-Fill in your environment variables:
-```env
-# Database
-DATABASE_URL="your-postgresql-url"
+   ```env
+   # Database
+   DATABASE_URL="postgresql://user:pass@host:5432/zyro"
+   
+   # Clerk Authentication
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_..."
+   CLERK_SECRET_KEY="sk_..."
+   
+   # E2B Sandbox
+   E2B_API_KEY="e2b_..."
+   
+   # Inngest
+   INNGEST_EVENT_KEY="..."
+   INNGEST_SIGNING_KEY="..."
+   
+   # Encryption (generate with: openssl rand -hex 32)
+   ENCRYPTION_KEY="..."
+   ```
 
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-clerk-publishable-key"
-CLERK_SECRET_KEY="your-clerk-secret-key"
+4. **Initialize database**
+   ```bash
+   pnpm prisma migrate dev
+   pnpm prisma generate
+   ```
 
-# E2B Code Interpreter
-E2B_API_KEY="your-e2b-api-key"
+5. **Start development server**
+   ```bash
+   pnpm dev
+   ```
 
-# Inngest
-INNGEST_EVENT_KEY="your-inngest-event-key"
-INNGEST_SIGNING_KEY="your-inngest-signing-key"
-```
+6. **Start Inngest dev server** (separate terminal)
+   ```bash
+   npx inngest-cli@latest dev
+   ```
 
-4. Set up the database:
-```bash
-npx prisma migrate dev
-npx prisma generate
-```
+Open [http://localhost:3000](http://localhost:3000) to start generating!
 
-5. Start the development server:
-```bash
-npm run dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) to see your app running!
+## 🔧 Tech Stack
 
-## 📖 How It Works
+### Core Framework
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| [Next.js](https://nextjs.org) | 16.0.10 | React framework with App Router |
+| [React](https://react.dev) | 19.2.3 | UI library |
+| [TypeScript](https://typescriptlang.org) | 5.9.3 | Type safety |
 
-1. **Describe Your App**: Enter a natural language prompt describing the web application you want to create
-2. **AI Generation**: Zyro's AI analyzes your prompt and generates the complete application code
-3. **Live Preview**: See your app running instantly in the integrated preview
-4. **Share & Collaborate**: Get a shareable URL to show your creation to others
-5. **Iterate**: Refine your prompts to modify and improve your generated apps
+### AI & Agents
+| Technology | Purpose |
+|------------|---------|
+| [Inngest Agent Kit](https://inngest.com/docs/agent-kit) | Multi-agent orchestration |
+| [E2B](https://e2b.dev) | Sandboxed code execution |
 
-## 🎯 Example Prompts
+### Database & API
+| Technology | Purpose |
+|------------|---------|
+| [Prisma](https://prisma.io) | ORM & migrations |
+| [PostgreSQL](https://postgresql.org) | Database |
+| [tRPC](https://trpc.io) | Type-safe API |
+| [TanStack Query](https://tanstack.com/query) | Data fetching |
 
-- "Create a todo app with dark mode and local storage"
-- "Build a weather dashboard with charts and animations"
-- "Make a portfolio website with a contact form"
-- "Generate a calculator with a modern glassmorphism design"
-- "Create a music player interface with playlist support"
+### UI & Styling
+| Technology | Purpose |
+|------------|---------|
+| [Tailwind CSS](https://tailwindcss.com) | Utility-first CSS |
+| [shadcn/ui](https://ui.shadcn.com) | UI components |
+| [Radix UI](https://radix-ui.com) | Accessible primitives |
+| [Lucide](https://lucide.dev) | Icons |
 
-## 🏗️ Project Structure
+### Auth & Infrastructure
+| Technology | Purpose |
+|------------|---------|
+| [Clerk](https://clerk.com) | Authentication |
+| [Inngest](https://inngest.com) | Event-driven background jobs |
+| [Sonner](https://sonner.emilkowal.ski) | Toast notifications |
 
-```
-zyro/
-├── src/
-│   ├── app/              # Next.js 15 app directory
-│   ├── components/       # Reusable UI components
-│   ├── lib/             # Utility functions and configurations
-│   ├── server/          # tRPC API routes and database logic
-│   └── types/           # TypeScript type definitions
-├── prisma/              # Database schema and migrations
-├── public/              # Static assets
-└── package.json         # Dependencies and scripts
-```
+---
 
-## 🔧 Available Scripts
+## 📝 Example Prompts
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run postinstall` - Generate Prisma client
+Try these prompts to see Zyro in action:
+
+| Prompt | What You'll Get |
+|--------|-----------------|
+| *"Create a todo app with dark mode"* | Full CRUD todo list with theme toggle |
+| *"Build a weather dashboard with charts"* | Dashboard layout with data visualization |
+| *"Make a portfolio website with contact form"* | Multi-section portfolio with form validation |
+| *"Create a music player interface"* | Audio player UI with playlist management |
+| *"Build a Kanban board like Trello"* | Drag-and-drop task management |
+| *"Design a Twitter/X clone feed"* | Social media feed with interactions |
+
+---
+
+## 🔒 Security
+
+- **Encrypted API Keys**: User API keys are encrypted with AES-256-GCM before storage
+- **Isolated Sandboxes**: Each code generation runs in an isolated E2B sandbox
+- **Authentication**: All routes protected with Clerk authentication
+- **Input Validation**: Zod schemas validate all API inputs
+
+---
+
+## 📜 Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server with Turbopack |
+| `pnpm build` | Build for production |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm prisma studio` | Open Prisma database GUI |
+| `pnpm prisma migrate dev` | Run database migrations |
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+---
+
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+---
 
-- [Vercel](https://vercel.com) for Next.js and deployment platform
-- [Clerk](https://clerk.com) for authentication
-- [E2B](https://e2b.dev) for code interpretation
-- [Radix UI](https://radix-ui.com) for accessible components
-- [Tailwind CSS](https://tailwindcss.com) for styling
-
+<p align="center">
+  Built with ❤️ by <a href="https://github.com/riaz37">riaz37</a>
+</p>
