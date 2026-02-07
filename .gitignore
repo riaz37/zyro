@@ -49,6 +49,5 @@ next-env.d.ts
 /src/generated/prisma
 
 # documentation
-INTERVIEW_PREP.md
 INTERVIEW_PREP_MASTER_CLASS.md
-RESUME_SECTION.md
+
