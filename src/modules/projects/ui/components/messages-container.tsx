@@ -68,6 +68,8 @@ export function MessagesContainer({
                             isActiveFragment={activeFragment?.id === message.Fragment?.id}
                             onFragmentClick={() => setActiveFragment(message.Fragment)}
                             type={message.type}
+                            messageId={message.id}
+                            projectId={projectId}
                         />
                     ))}
 

@@ -57,6 +57,10 @@ function FragmentCard({
     )
 }
 
+import { PlanCard } from "./plan-card";
+
+// ... existing imports
+
 interface AssistantMessageProps {
     content: string;
     fragment: Fragment | null;
@@ -64,6 +68,8 @@ interface AssistantMessageProps {
     isActiveFragment: boolean;
     onFragmentClick: (fragment: Fragment) => void;
     type: MessageType;
+    messageId: string;
+    projectId: string;
 }
 
 function AssistantMessage({
@@ -72,8 +78,30 @@ function AssistantMessage({
     createdAt,
     isActiveFragment,
     onFragmentClick,
-    type
+    type,
+    messageId,
+    projectId
 }: AssistantMessageProps) {
+    if (type === "PLAN") {
+        return (
+            <div className="flex flex-col group px-2 pb-4">
+                <div className="flex items-center gap-2 pl-2 mb-2">
+                    <Image
+                        src="/logo.svg"
+                        alt="Zyro"
+                        width={18}
+                        height={18}
+                        className="shrink-0"
+                    />
+                    <span className="text-sm font-medium">Zyro</span>
+                </div>
+                <div className="pl-8.5">
+                    <PlanCard content={content} messageId={messageId} projectId={projectId} />
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div
             className={cn(
@@ -118,6 +146,8 @@ interface props {
     isActiveFragment: boolean;
     onFragmentClick: (fragment: Fragment) => void;
     type: MessageType;
+    messageId: string;
+    projectId: string;
 }
 export function MessageCard({
     content,
@@ -126,7 +156,9 @@ export function MessageCard({
     createdAt,
     isActiveFragment,
     onFragmentClick,
-    type
+    type,
+    messageId,
+    projectId
 }: props) {
     if (role === "ASSISTANT") {
         return (
@@ -137,6 +169,8 @@ export function MessageCard({
                 isActiveFragment={isActiveFragment}
                 onFragmentClick={onFragmentClick}
                 type={type}
+                messageId={messageId}
+                projectId={projectId}
             />
         )
     }

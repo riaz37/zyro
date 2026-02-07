@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getDecryptedUserApiKey, MissingUserApiKeyError } from "@/lib/ai-keys/server";
 import { lastAssistantMessageContent } from "@/lib/utils";
-import { FRAGMENT_TITLE_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
+import { FRAGMENT_TITLE_PROMPT, PLANNING_PROMPT, PROMPT, RESPONSE_PROMPT } from "@/prompt";
 import { Sandbox } from "@e2b/code-interpreter";
 import { anthropic, createAgent, createNetwork, createState, createTool, gemini, openai, type Message, type Tool } from "@inngest/agent-kit";
 import { z } from "zod";
@@ -56,9 +56,9 @@ function getAgentModel(provider: AiProviderId, apiKey: string, purpose: AgentPur
     }
 }
 
-export const codeAgentFunction = inngest.createFunction(
-    { id: "code-agent" },
-    { event: "code-agent/run" },
+export const codeAgentPlan = inngest.createFunction(
+    { id: "code-agent-plan" },
+    { event: "code-agent/plan" },
     async ({ event, step }) => {
         const project = await step.run("get-project", async () => {
             return prisma.project.findUnique({
@@ -92,15 +92,108 @@ export const codeAgentFunction = inngest.createFunction(
                         },
                     })
                 })
-
                 return {
-                    url: "",
-                    title: "Missing API key",
-                    files: {},
-                    summary: "",
+                    summary: "Missing API Key"
                 }
             }
+            throw e
+        }
 
+        const previousMessage = await step.run("get-previous-message", async () => {
+            const formattedMessage: Message[] = []
+            const messages = await prisma.message.findMany({
+                where: { projectId: event.data.projectId },
+                orderBy: { createdAt: "desc" },
+                take: 5
+            })
+            for (const message of messages) {
+                if (!message.content) continue;
+                formattedMessage.push({
+                    type: "text",
+                    role: message.role === "ASSISTANT" ? "assistant" : "user",
+                    content: message.content
+                })
+            }
+            return formattedMessage.reverse();
+        })
+
+        const state = createState<AgentState>(
+            { summary: "", files: {} },
+            { messages: previousMessage }
+        )
+
+        const planAgent = createAgent<AgentState>({
+            name: "plan-agent",
+            description: "A planning agent",
+            system: PLANNING_PROMPT,
+            model: getAgentModel(provider, apiKey, "code"),
+            lifecycle: {
+                onResponse: async ({ result, network }) => {
+                    const lastAssistantTextMessageText = lastAssistantMessageContent(result);
+
+                    if (lastAssistantTextMessageText && network) {
+                        network.state.data.summary = lastAssistantTextMessageText
+                    }
+
+                    return result
+                },
+            }
+        });
+
+        const network = createNetwork<AgentState>({
+            name: "plan-agent-network",
+            agents: [planAgent],
+            maxIter: 1,
+            defaultState: state,
+        })
+
+        const result = await network.run(event.data.value, { state })
+
+        const planContent = result.state.data.summary || "Failed to generate plan.";
+
+        await step.run("save-plan", async () => {
+            return prisma.message.create({
+                data: {
+                    projectId: event.data.projectId,
+                    content: planContent,
+                    role: "ASSISTANT",
+                    type: "PLAN",
+                }
+            })
+        })
+
+        return { summary: planContent }
+    }
+)
+
+export const codeAgentGenerate = inngest.createFunction(
+    { id: "code-agent-generate" },
+    { event: "code-agent/generate" },
+    async ({ event, step }) => {
+        const project = await step.run("get-project", async () => {
+            return prisma.project.findUnique({
+                where: { id: event.data.projectId },
+                select: { userId: true },
+            })
+        })
+
+        if (!project) {
+            throw new Error("Project not found")
+        }
+
+        let provider: AiProviderId
+        let apiKey: string
+
+        try {
+            const result = await step.run("get-user-api-key", async () => {
+                return getDecryptedUserApiKey(project.userId)
+            })
+            provider = result.provider
+            apiKey = result.apiKey
+        } catch (e) {
+            if (e instanceof MissingUserApiKeyError) {
+                return { title: "Error", summary: "Missing API Key", url: "", files: {} }
+            }
             throw e
         }
 
@@ -112,27 +205,19 @@ export const codeAgentFunction = inngest.createFunction(
 
         const previousMessage = await step.run("get-previous-message", async () => {
             const formattedMessage: Message[] = []
-
             const messages = await prisma.message.findMany({
-                where: {
-                    projectId: event.data.projectId
-                },
-                orderBy: {
-                    createdAt: "desc"
-                },
-                take: 5
+                where: { projectId: event.data.projectId },
+                orderBy: { createdAt: "desc" },
+                take: 10
             })
-
             for (const message of messages) {
                 if (!message.content) continue;
-
                 formattedMessage.push({
                     type: "text",
                     role: message.role === "ASSISTANT" ? "assistant" : "user",
                     content: message.content
                 })
             }
-
             return formattedMessage.reverse();
         })
 
@@ -287,8 +372,12 @@ export const codeAgentFunction = inngest.createFunction(
             model: getAgentModel(provider, apiKey, "response"),
         });
 
-        const { output: fragmentTitleOutput } = await fragmentTitleGenerator.run(result.state.data.summary);
-        const { output: responseOutput } = await responseGenerator.run(result.state.data.summary);
+        const { output: fragmentTitleOutput } = await step.run("generate-fragment-title", async () => {
+            return await fragmentTitleGenerator.run(result.state.data.summary);
+        });
+        const { output: responseOutput } = await step.run("generate-response", async () => {
+            return await responseGenerator.run(result.state.data.summary);
+        });
 
         const generateFragmentTitle = () => {
             const firstOutput = fragmentTitleOutput[0];

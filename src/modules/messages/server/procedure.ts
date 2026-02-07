@@ -73,7 +73,7 @@ export const messageRoute = createTRPCRouter({
             })
 
             await inngest.send({
-                name: "code-agent/run",
+                name: "code-agent/plan",
                 data: {
                     value: input.value,
                     projectId: input.projectId
@@ -81,5 +81,43 @@ export const messageRoute = createTRPCRouter({
             })
 
             return createMessage;
+        }),
+
+    approvePlan: protectedProcedure
+        .input(
+            z.object({
+                projectId: z.string().min(1),
+                messageId: z.string().min(1),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            const planMessage = await prisma.message.findUnique({
+                where: {
+                    id: input.messageId,
+                    projectId: input.projectId,
+                    Project: {
+                        userId: ctx.auth.userId
+                    }
+                }
+            });
+
+            if (!planMessage) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Plan message not found" });
+            }
+
+            if (planMessage.type !== "PLAN") {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Message is not a plan" });
+            }
+
+            // Trigger code generation
+            await inngest.send({
+                name: "code-agent/generate",
+                data: {
+                    value: "Generate code based on the approved plan.", // Context is handled by previous messages
+                    projectId: input.projectId,
+                }
+            });
+
+            return { success: true };
         }),
 }) 

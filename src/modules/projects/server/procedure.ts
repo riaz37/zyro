@@ -70,7 +70,7 @@ export const projectRoute = createTRPCRouter({
 
                 console.log("Sending Inngest event...");
                 await inngest.send({
-                    name: "code-agent/run",
+                    name: "code-agent/plan",
                     data: {
                         value: input.value,
                         projectId: createProject.id

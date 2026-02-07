@@ -13,6 +13,7 @@ import { CodeIcon, EyeIcon } from "lucide-react";
 import { Suspense, useState } from "react";
 import { FragmentWeb } from "../components/fragment-web";
 import { MessagesContainer } from "../components/messages-container";
+import { MessagesSkeleton, ProjectHeaderSkeleton } from "../components/project-skeleton";
 import { ProjectHeader } from "../components/project-header";
 import { UserControl } from "@/components/user-control";
 import { ErrorBoundary } from "react-error-boundary";
@@ -34,13 +35,13 @@ export function ProjectView({ projectId }: props) {
                     className="flex flex-col min-h-0"
                 >
                     <ErrorBoundary fallback={<p>Project header error</p>}>
-                        <Suspense fallback={<p>Loading project...</p>}>
+                        <Suspense fallback={<ProjectHeaderSkeleton />}>
                             <ProjectHeader projectId={projectId} />
                         </Suspense>
                     </ErrorBoundary>
 
                     <ErrorBoundary fallback={<p>Messages container error</p>}>
-                        <Suspense fallback={<p>Loading messages...</p>}>
+                        <Suspense fallback={<MessagesSkeleton />}>
                             <MessagesContainer
                                 projectId={projectId}
                                 activeFragment={activeFragment}

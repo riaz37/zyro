@@ -1,3 +1,4 @@
+import { ProjectViewSkeleton } from "@/modules/projects/ui/components/project-skeleton";
 import { ProjectView } from "@/modules/projects/ui/views/project-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -26,7 +27,7 @@ export default async function ProjectIdPage({ params }: props) {
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
             <ErrorBoundary fallback={<p>Error</p>}>
-                <Suspense fallback={<p>Loading...</p>}>
+                <Suspense fallback={<ProjectViewSkeleton />}>
                     <ProjectView projectId={projectId} />
                 </Suspense>
             </ErrorBoundary>

@@ -48,6 +48,7 @@
     "react-dom": "^19.2.3",
     "react-error-boundary": "^6.0.0",
     "react-hook-form": "^7.68.0",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.0.7",
     "react-textarea-autosize": "^8.5.9",
     "server-only": "^0.0.1",
