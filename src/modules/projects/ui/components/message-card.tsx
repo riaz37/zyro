@@ -57,9 +57,8 @@ function FragmentCard({
     )
 }
 
+import { MessageLoading } from "./message-loading";
 import { PlanCard } from "./plan-card";
-
-// ... existing imports
 
 interface AssistantMessageProps {
     content: string;
@@ -100,6 +99,10 @@ function AssistantMessage({
                 </div>
             </div>
         )
+    }
+
+    if (type === "GENERATING") {
+        return <MessageLoading />
     }
 
     return (

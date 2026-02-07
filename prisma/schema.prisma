@@ -34,6 +34,7 @@ enum MessageType {
   RESULT
   ERROR
   PLAN
+  GENERATING
 }
 
 model Message {
@@ -41,6 +42,7 @@ model Message {
   content String
   role    MessageRole
   type    MessageType
+  metadata Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

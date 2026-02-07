@@ -145,6 +145,7 @@ export const codeAgentPlan = inngest.createFunction(
             agents: [planAgent],
             maxIter: 1,
             defaultState: state,
+            router: async () => planAgent,
         })
 
         const result = await network.run(event.data.value, { state })
@@ -180,6 +181,17 @@ export const codeAgentGenerate = inngest.createFunction(
         if (!project) {
             throw new Error("Project not found")
         }
+
+        const generatingMessage = await step.run("create-generating-message", async () => {
+            return prisma.message.create({
+                data: {
+                    projectId: event.data.projectId,
+                    role: "ASSISTANT",
+                    type: "GENERATING",
+                    content: "",
+                }
+            })
+        })
 
         let provider: AiProviderId
         let apiKey: string
@@ -456,21 +468,19 @@ export const codeAgentGenerate = inngest.createFunction(
         await step.run("save-result", async () => {
             if (isError) {
                 console.error(result.state.data.summary)
-                return await prisma.message.create({
+                return await prisma.message.update({
+                    where: { id: generatingMessage.id },
                     data: {
-                        projectId: event.data.projectId,
                         content: "Something went wrong. Please try again.",
-                        role: "ASSISTANT",
                         type: "ERROR",
                     }
                 })
             }
 
-            return prisma.message.create({
+            return prisma.message.update({
+                where: { id: generatingMessage.id },
                 data: {
-                    projectId: event.data.projectId,
                     content: generateResponse(),
-                    role: "ASSISTANT",
                     type: "RESULT",
                     Fragment: {
                         create: {
